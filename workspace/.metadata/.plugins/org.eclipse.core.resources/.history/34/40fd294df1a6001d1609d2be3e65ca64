@@ -1,0 +1,201 @@
+/*
+ * func.c
+ *
+ *  Created on: Dec 12, 2022
+ *      Author: dung
+ */
+
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
+#include <stdbool.h>
+
+#include "main.h"
+#include "cmsis_os.h"
+
+#include "usart.h"
+#include "gpio.h"
+
+#include "func.h"
+
+void reverse(char *str, int len)
+{
+    int i = 0, j = len - 1, temp;
+    while (i < j)
+    {
+        temp = str[i];
+        str[i] = str[j];
+        str[j] = temp;
+        i++;
+        j--;
+    }
+}
+
+int intToStr(int x, char str[], int d)
+{
+    int i = 0;
+    if(x == 0)
+        str[i++] = '0';
+
+    while (x)
+    {
+        str[i++] = (x % 10) + '0';
+        x = x / 10;
+    }
+
+    while (i < d)
+        str[i++] = '0';
+
+    reverse(str, i);
+    str[i] = '\0';
+    return i;
+}
+
+void ftoa(double n, char* res, int afterpoint)
+{
+    int ipart = (int)n;
+    double fpart = n - (double)ipart;
+    int i = intToStr(ipart, res, 0);
+    if (afterpoint != 0)
+    {
+        res[i] = '.';
+        fpart = fpart * pow(10, afterpoint);
+        intToStr((int)fpart, res + i + 1, afterpoint);
+    }
+}
+
+stm_err_t sim_read_resp(uint8_t *data_format, uint32_t delay, bool check)
+{
+	uint8_t data_resp[20] = {0};
+	HAL_UART_Receive(&huart2, data_resp, 20, delay);
+	if(check == true)
+	{
+		if(strstr((char*)data_resp, (char*)data_format) != NULL)
+			return STM_OK;
+		return STM_NOT_OK;
+	}
+	else
+		return STM_OK;
+}
+
+void sim_send_mess(uint8_t *data_mess, uint8_t *number)
+{
+	char end_mess[2] = {0x1A, 0x00};
+	uint8_t at_send_command[100] = {0};
+	sprintf((char*)at_send_command, "AT+CMGS=\"%s\"\r\n", (char*)number);
+	HAL_UART_Transmit(&huart2, at_send_command, strlen((char*)at_send_command), 1000);
+	sim_read_resp((uint8_t*)">", 1000, true);
+	HAL_UART_Transmit(&huart2, data_mess, strlen((char*)data_mess), 1000);
+	vTaskDelay(1000);
+	HAL_UART_Transmit(&huart2, (uint8_t*)end_mess, strlen(end_mess), 1000);
+	vTaskDelay(1000);
+}
+
+stm_err_t sim_init(void)
+{
+	while(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12))
+	{
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
+		vTaskDelay(50);
+	}
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+
+	HAL_UART_Transmit(&huart2, (uint8_t*)"ATE0\r\n", strlen("ATE0\r\n"), 1000);
+	if(sim_read_resp((uint8_t*)"OK", 200, true) != STM_OK)
+		return STM_NOT_OK;
+
+	HAL_UART_Transmit(&huart2, (uint8_t*)"AT\r\n", strlen("AT\r\n"), 1000);
+	if(sim_read_resp((uint8_t*)"OK", 200, true) != STM_OK)
+		return STM_NOT_OK;
+
+	HAL_UART_Transmit(&huart2, (uint8_t*)"AT+CPIN?\r\n", strlen("AT+CPIN?\r\n"), 1000);
+	if(sim_read_resp((uint8_t*)"OK", 200, false) != STM_OK)
+		return STM_NOT_OK;
+
+	HAL_UART_Transmit(&huart2, (uint8_t*)"AT+COPS?\r\n", strlen("AT+COPS?\r\n"), 1000);
+	if(sim_read_resp((uint8_t*)"OK", 200, false) != STM_OK)
+		return STM_NOT_OK;
+
+	HAL_UART_Transmit(&huart2, (uint8_t*)"AT+CMGF=1\r\n", strlen("AT+CMGF=1\r\n"), 1000);
+	if(sim_read_resp((uint8_t*)"OK", 200, false) != STM_OK)
+		return STM_NOT_OK;
+
+	HAL_UART_Transmit(&huart2, (uint8_t*)"AT&W\r\n", strlen("AT&W\r\n"), 1000);
+	if(sim_read_resp((uint8_t*)"OK", 200, false) != STM_OK)
+		return STM_NOT_OK;
+	return STM_OK;
+}
+
+void quectel_init(void)
+{
+	HAL_UART_Transmit(&huart3 ,(uint8_t*)"$PMTK314,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29\r\n", strlen("$PMTK314,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29\r\n"), 1000);
+	vTaskDelay(200);
+	HAL_UART_Transmit(&huart3, (uint8_t*)"$PMTK285,2,100*3E\r\n", strlen("$PMTK285,2,100*3E\r\n"), 1000);
+	vTaskDelay(200);
+}
+
+void quectel_callback(void)
+{
+	if(data_rx == '$' && quectel_state == QUECTEL_START_DATA)
+	{
+		data_gps_rx[k++] = data_rx;
+		quectel_state = QUECTEL_DATA;
+		HAL_UART_Receive_IT(&huart3, (uint8_t*)&data_rx, 1);
+	}
+	else if(data_rx == '\n' && quectel_state == QUECTEL_DATA)
+	{
+		data_gps_rx[k++] = data_rx;
+		quectel_state = QUECTEL_END_DATA;
+	}
+	else if(quectel_state == QUECTEL_DATA)
+	{
+		data_gps_rx[k++] = data_rx;
+		HAL_UART_Receive_IT(&huart3, (uint8_t*)&data_rx, 1);
+	}
+	else
+		HAL_UART_Receive_IT(&huart3, (uint8_t*)&data_rx, 1);
+}
+
+void quectel_recv_gps(void)
+{
+	k = 0;
+	memset(data_gps_rx, '\0', strlen(data_gps_rx));
+	quectel_state = QUECTEL_START_DATA;
+	HAL_UART_Receive_IT(&huart3, (uint8_t*)&data_rx, 1);
+	while(!(quectel_state == QUECTEL_END_DATA))
+	{
+		vTaskDelay(100);
+	}
+}
+
+void quectel_procees_gps(quectel_struct_t *gps, char *data_gps, char *data_lat, char *data_long)
+{
+    int temp = 0;
+    double dec_part = 0;
+    double int_part = 0;
+    double latitude = 0;
+    double longitude = 0;
+    data_gps = strstr(data_gps, "$GPGGA");
+    sscanf(data_gps, "$GPGGA,%[^,],%[^,],%[^,],%[^,],%[^,],%[^,],%[^,]", \
+    		gps->utc_time, gps->latitude, &gps->NorS, gps->longtitude, &gps->EorW, &gps->fix_status, &gps->NoSatellites);
+
+    latitude = atof(gps->latitude);
+    temp = (int)latitude;
+    int_part = (double)(temp / 100);
+    dec_part = (double)(temp % 100) + latitude - (double)temp;
+    latitude = int_part + dec_part / 60;
+
+    longitude = atof(gps->longtitude);
+    temp = (int)longitude;
+    int_part = (double)(temp / 100);
+    dec_part = (double)(temp % 100) + longitude - (double)temp;
+    longitude = int_part + dec_part / 60;
+    ftoa(latitude, data_lat, 6);
+    ftoa(longitude, data_long, 6);
+}
+
+
+
+

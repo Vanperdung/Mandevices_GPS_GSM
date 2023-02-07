@@ -95,12 +95,14 @@ void sim_send_mess(uint8_t *data_mess, uint8_t *number)
 
 stm_err_t sim_init(void)
 {
+	// kich hoat sim
 	while(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12))
 	{
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
 		vTaskDelay(50);
 	}
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+
 
 	HAL_UART_Transmit(&huart2, (uint8_t*)"ATE0\r\n", strlen("ATE0\r\n"), 1000);
 	if(sim_read_resp((uint8_t*)"OK", 200, true) != STM_OK)
@@ -126,6 +128,7 @@ stm_err_t sim_init(void)
 	if(sim_read_resp((uint8_t*)"OK", 200, false) != STM_OK)
 		return STM_NOT_OK;
 	return STM_OK;
+
 }
 
 void quectel_init(void)

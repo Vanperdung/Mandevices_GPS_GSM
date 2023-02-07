@@ -1289,7 +1289,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 08000d28 <general_task>:
 
-void general_task(void *param)
+void general_task(void *param) // hien thi dien ap pin va gui tin nhan den dien thoai
 {
  8000d28:	b580      	push	{r7, lr}
  8000d2a:	b09e      	sub	sp, #120	; 0x78
@@ -1494,6 +1494,7 @@ void general_task(void *param)
  8000e96:	481f      	ldr	r0, [pc, #124]	; (8000f14 <general_task+0x1ec>)
  8000e98:	f001 fe8f 	bl	8002bba <HAL_GPIO_WritePin>
 		}
+
 		if(send_sms_flag == true && ((xTaskGetTickCount() > tick_sms + 5000) || tick_sms == 0))
  8000e9c:	4b1e      	ldr	r3, [pc, #120]	; (8000f18 <general_task+0x1f0>)
  8000e9e:	781b      	ldrb	r3, [r3, #0]
@@ -1971,6 +1972,7 @@ stm_err_t sim_init(void)
 {
  800120c:	b580      	push	{r7, lr}
  800120e:	af00      	add	r7, sp, #0
+	// kich hoat sim
 	while(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12))
  8001210:	e008      	b.n	8001224 <sim_init+0x18>
 	{
@@ -1995,6 +1997,7 @@ stm_err_t sim_init(void)
  8001236:	f44f 7180 	mov.w	r1, #256	; 0x100
  800123a:	4836      	ldr	r0, [pc, #216]	; (8001314 <sim_init+0x108>)
  800123c:	f001 fcbd 	bl	8002bba <HAL_GPIO_WritePin>
+
 
 	HAL_UART_Transmit(&huart2, (uint8_t*)"ATE0\r\n", strlen("ATE0\r\n"), 1000);
  8001240:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
@@ -2105,6 +2108,7 @@ stm_err_t sim_init(void)
  800130a:	e000      	b.n	800130e <sim_init+0x102>
 	return STM_OK;
  800130c:	2301      	movs	r3, #1
+
 }
  800130e:	4618      	mov	r0, r3
  8001310:	bd80      	pop	{r7, pc}

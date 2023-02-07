@@ -4,7 +4,7 @@
 ../Core/Src/func.c:69:11:sim_read_resp	48	static
 ../Core/Src/func.c:83:6:sim_send_mess	120	static
 ../Core/Src/func.c:96:11:sim_init	8	static
-../Core/Src/func.c:131:6:quectel_init	8	static
-../Core/Src/func.c:139:6:quectel_callback	8	static
-../Core/Src/func.c:161:6:quectel_recv_gps	8	static
-../Core/Src/func.c:173:6:quectel_procees_gps	104	static
+../Core/Src/func.c:134:6:quectel_init	8	static
+../Core/Src/func.c:142:6:quectel_callback	8	static
+../Core/Src/func.c:164:6:quectel_recv_gps	8	static
+../Core/Src/func.c:176:6:quectel_procees_gps	104	static

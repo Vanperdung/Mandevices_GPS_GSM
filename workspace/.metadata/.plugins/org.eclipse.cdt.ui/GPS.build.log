@@ -1,10 +1,18 @@
-14:58:36 **** Build of configuration Debug for project GPS ****
+21:11:23 **** Build of configuration Debug for project GPS ****
 make -j8 all 
+arm-none-eabi-gcc "../Core/Src/freertos.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F103xB -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM3 -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/freertos.d" -MT"Core/Src/freertos.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/freertos.o"
+arm-none-eabi-gcc "../Core/Src/func.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F103xB -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM3 -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/func.d" -MT"Core/Src/func.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/func.o"
+arm-none-eabi-gcc -o "GPS.elf" @"objects.list"   -mcpu=cortex-m3 -T"D:\Mandevices_GPS_GSM\workspace\GPS\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="GPS.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: GPS.elf
+ 
 arm-none-eabi-size   GPS.elf 
+arm-none-eabi-objdump -h -S  GPS.elf  > "GPS.list"
    text	   data	    bss	    dec	    hex	filename
   42928	    508	   6100	  49536	   c180	GPS.elf
 Finished building: default.size.stdout
  
+Finished building: GPS.list
+ 
 
-14:58:36 Build Finished. 0 errors, 0 warnings. (took 587ms)
+21:11:25 Build Finished. 0 errors, 0 warnings. (took 2s.178ms)
 

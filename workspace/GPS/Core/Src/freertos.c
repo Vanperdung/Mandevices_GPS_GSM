@@ -64,7 +64,7 @@ bool get_battery_level_flag = false;
 uint16_t battery_level = 0;
 char data_lat[10] = {0};
 char data_long[10] = {0};
-char number[15] = "0373529544";
+char number[15] = "0832377059";
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
 
@@ -174,7 +174,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	}
 }
 
-void general_task(void *param)
+void general_task(void *param) // hien thi dien ap pin va gui tin nhan den dien thoai
 {
 	TickType_t tick_battery = 0;
 	TickType_t tick_sms = 0;
@@ -226,6 +226,7 @@ void general_task(void *param)
 			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
 			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
 		}
+
 		if(send_sms_flag == true && ((xTaskGetTickCount() > tick_sms + 5000) || tick_sms == 0))
 		{
 			tick_sms = xTaskGetTickCount();

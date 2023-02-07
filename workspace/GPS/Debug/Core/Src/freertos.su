@@ -4,4 +4,4 @@
 ../Core/Src/freertos.c:155:6:HAL_GPIO_EXTI_Callback	16	static
 ../Core/Src/freertos.c:169:6:HAL_UART_RxCpltCallback	16	static
 ../Core/Src/freertos.c:177:6:general_task	128	static
-../Core/Src/freertos.c:243:6:gps_task	16	static
+../Core/Src/freertos.c:244:6:gps_task	16	static
